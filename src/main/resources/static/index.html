@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        form {
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <form action="/orderFile" method="post" enctype="multipart/form-data">
+        <fieldset>
+            <legend>스마트스토어_전체주문발주발송관리.xlsx 파일 가공</legend>
+            <div>
+                전체주문발주발송관리 파일: <input type="file" name="orderFile" />
+            </div>
+            <button type="submit">전송</button>
+        </fieldset>
+    </form>
+</div>
+
+<div>
+    <form action="" method="post">
+        <fieldset>
+            <legend>일괄발송파일(excelUploadSample.xls) 생성</legend>
+            <div>
+                전체주문발주발송관리 파일: <input type="file" name="orderFile" />
+            </div>
+            <div>
+                파일접수상세내역 파일: <input type="file" name="receiptFile" />
+            </div>
+            <button type="submit">전송</button>
+        </fieldset>
+    </form>
+</div>
+
+</body>
+</html>
