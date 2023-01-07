@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @org.springframework.stereotype.Repository
@@ -36,18 +39,16 @@ public class Repository {
     private String uploadFileName;
 
     public String modifyOrderFile(MultipartFile file) throws IOException {
-        UUID identifier = UUID.randomUUID();
-        String fileDirAndName = getFileDir() + identifier + ".xlsx";
-        file.transferTo(new File(fileDirAndName));
-        saveModifiedOrderFile(fileDirAndName);
-        return identifier + ".xlsx";
+        String storedFileName = saveFile(file);
+        saveModifiedOrderFile(storedFileName);
+        return storedFileName;
     }
 
-    private void saveModifiedOrderFile(String fileDirAndName) throws IOException {
-        Workbook workbook = WorkbookFactory.create(new File(fileDirAndName), password);
+    private void saveModifiedOrderFile(String storedFileName) throws IOException {
+        Workbook workbook = WorkbookFactory.create(new File(getFileDir() + storedFileName), password);
         Sheet sheet = workbook.getSheetAt(0);
         sheet.shiftRows(1, sheet.getLastRowNum(), -1);
-        FileOutputStream fileOutputStream = new FileOutputStream(fileDirAndName);
+        FileOutputStream fileOutputStream = new FileOutputStream(getFileDir() + storedFileName);
         workbook.write(fileOutputStream);
         fileOutputStream.close();
         workbook.close();
@@ -71,7 +72,7 @@ public class Repository {
 
         setBatchFileValues(sheetBatch, orderNumber, waybillNumber, payeeName);
 
-        String storedBatchFileName = "날짜" + uploadFileName;
+        String storedBatchFileName = getDateFormat() + uploadFileName;
         FileOutputStream fileOutputStream = new FileOutputStream(getFileDir() + storedBatchFileName);
         wbBatchFile.write(fileOutputStream);
         fileOutputStream.close();
@@ -86,9 +87,14 @@ public class Repository {
         return storedBatchFileName;
     }
 
+    private String getDateFormat() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_");
+        return LocalDate.now().format(formatter);
+    }
+
     private String saveFile(MultipartFile file) throws IOException {
         UUID identifier = UUID.randomUUID();
-        String storedFileName = identifier + extractExt(file.getOriginalFilename());
+        String storedFileName = identifier + extractExt(Objects.requireNonNull(file.getOriginalFilename()));
         file.transferTo(new File(getFileDir() + storedFileName));
         return storedFileName;
     }
