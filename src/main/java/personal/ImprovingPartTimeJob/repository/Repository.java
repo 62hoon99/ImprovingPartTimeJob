@@ -67,7 +67,7 @@ public class Repository {
 
         List<String> orderNumber = getColumnValues(sheetOrder, 0);
         List<String> waybillNumber = getColumnValues(sheetReceipt, 5);// F열
-        List<String> payeeName = getColumnValues(sheetReceipt, 10);
+        List<String> payeeName = getColumnValues(sheetReceipt, 10); // K열
 
         setBatchFileValues(sheetBatch, orderNumber, waybillNumber, payeeName);
 
