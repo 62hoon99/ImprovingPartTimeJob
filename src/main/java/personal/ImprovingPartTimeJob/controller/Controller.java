@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import personal.ImprovingPartTimeJob.service.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotEmpty;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +22,7 @@ public class Controller {
     private final Service service;
 
     @PostMapping("/orderFile")
-    public void modifyOrderFile(@NotEmpty @RequestParam("orderFile") MultipartFile orderFile,
+    public void modifyOrderFile(@RequestParam MultipartFile orderFile,
                                 HttpServletResponse response) throws IOException {
         String storedFileName = service.modifyOrderFile(orderFile);
         containFileToResponse(storedFileName, response, orderFile.getOriginalFilename());
@@ -33,9 +32,9 @@ public class Controller {
     @PostMapping("/batchFile")
     public void createBatchFile(@RequestParam MultipartFile orderFile,
                                 @RequestParam MultipartFile receiptFile,
+                                @RequestParam String turn,
                                 HttpServletResponse response) throws IOException {
-
-        String storedBatchFileName = service.createBatchFile(orderFile, receiptFile);
+        String storedBatchFileName = service.createBatchFile(orderFile, receiptFile, turn);
         containFileToResponse(storedBatchFileName, response, storedBatchFileName);
         service.deleteFile(storedBatchFileName);
     }

@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.tomcat.jni.FileInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,7 +53,7 @@ public class Repository {
         workbook.close();
     }
 
-    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile) throws IOException {
+    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile, String turn) throws IOException {
         String orderFileName = saveFile(orderFile);
         String receiptFileName = saveFile(receiptFile);
 
@@ -72,7 +71,7 @@ public class Repository {
 
         setBatchFileValues(sheetBatch, orderNumber, waybillNumber, payeeName);
 
-        String storedBatchFileName = getDateFormat() + uploadFileName;
+        String storedBatchFileName = getDateFormat() + getTurnFormat(turn) + uploadFileName;
         FileOutputStream fileOutputStream = new FileOutputStream(getFileDir() + storedBatchFileName);
         wbBatchFile.write(fileOutputStream);
         fileOutputStream.close();
@@ -85,6 +84,10 @@ public class Repository {
         deleteFile(receiptFileName);
 
         return storedBatchFileName;
+    }
+
+    private String getTurnFormat(String turn) {
+        return turn + "차_";
     }
 
     private String getDateFormat() {

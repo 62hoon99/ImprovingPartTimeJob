@@ -23,7 +23,7 @@ public class Service {
         repository.deleteFile(storedFileName);
     }
 
-    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile) throws IOException {
-        return repository.createBatchFile(orderFile, receiptFile);
+    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile, String turn) throws IOException {
+        return repository.createBatchFile(orderFile, receiptFile, turn);
     }
 }
