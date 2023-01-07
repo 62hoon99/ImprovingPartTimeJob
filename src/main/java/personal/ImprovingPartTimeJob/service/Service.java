@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import personal.ImprovingPartTimeJob.repository.Repository;
 
-import java.io.File;
 import java.io.IOException;
 
 @org.springframework.stereotype.Service
@@ -22,5 +21,9 @@ public class Service {
 
     public void deleteFile(String storedFileName) {
         repository.deleteFile(storedFileName);
+    }
+
+    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile) throws IOException {
+        return repository.createBatchFile(orderFile, receiptFile);
     }
 }
