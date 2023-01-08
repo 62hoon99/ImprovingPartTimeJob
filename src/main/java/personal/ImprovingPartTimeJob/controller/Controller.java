@@ -4,14 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import personal.ImprovingPartTimeJob.service.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @org.springframework.stereotype.Controller
@@ -19,31 +23,88 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class Controller {
 
+    @Value("${file.uploadFileName}")
+    private String uploadFileName;
+
     private final Service service;
 
+    @GetMapping("/")
+    public String home() {
+        return "home";
+    }
+
     @PostMapping("/orderFile")
-    public void modifyOrderFile(@RequestParam MultipartFile orderFile,
-                                HttpServletResponse response) throws IOException {
-        String storedFileName = service.modifyOrderFile(orderFile);
-        containFileToResponse(storedFileName, response, orderFile.getOriginalFilename());
-        service.deleteFile(storedFileName);
+    public String modifyOrderFile(@RequestParam MultipartFile orderFile,
+                                  RedirectAttributes redirectAttributes) {
+        if(orderFile.isEmpty()) {
+            return "redirect:/";
+        }
+
+        try {
+            String storedFileName = service.modifyOrderFile(orderFile);
+            redirectAttributes.addAttribute("storedFileName", storedFileName);
+            redirectAttributes.addAttribute("fileName", orderFile.getOriginalFilename());
+            return "redirect:/download";
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return "redirect:/";
+        }
+    }
+
+    @GetMapping("/download")
+    public void downloadOrderFile(String storedFileName, String fileName,
+                                  HttpServletResponse response) {
+        try {
+            containFileToResponse(storedFileName, response, fileName);
+            service.deleteFile(storedFileName);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     @PostMapping("/batchFile")
-    public void createBatchFile(@RequestParam MultipartFile orderFile,
+    public String createBatchFile(@RequestParam MultipartFile orderFile,
                                 @RequestParam MultipartFile receiptFile,
-                                @RequestParam String turn,
-                                HttpServletResponse response) throws IOException {
-        String storedBatchFileName = service.createBatchFile(orderFile, receiptFile, turn);
-        containFileToResponse(storedBatchFileName, response, storedBatchFileName);
-        service.deleteFile(storedBatchFileName);
+                                @RequestParam String turn, RedirectAttributes redirectAttributes) {
+        if(orderFile.isEmpty() || receiptFile.isEmpty() || turn.isEmpty()) {
+            return "redirect:/";
+        }
+
+        try {
+            String storedFileName = service.createBatchFile(orderFile, receiptFile);
+            redirectAttributes.addAttribute("storedFileName", storedFileName);
+            redirectAttributes.addAttribute("fileName", getBatchFileName(turn));
+            return "redirect:/download";
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return "redirect:/";
+        }
     }
 
-    private void containFileToResponse(String storedFileName, HttpServletResponse response, String orderFile) throws IOException {
+    @PostMapping("/cleanup")
+    public String cleanupDirectory() {
+        service.cleanUpDirectory();
+        return "redirect:/";
+    }
+
+    private String getBatchFileName(String turn) {
+        return getDateFormat() + getTurnFormat(turn) + uploadFileName;
+    }
+
+    private String getTurnFormat(String turn) {
+        return turn + "차_";
+    }
+
+    private String getDateFormat() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_");
+        return LocalDate.now().format(formatter);
+    }
+
+    private void containFileToResponse(String storedFileName, HttpServletResponse response, String fileName) throws IOException {
         Workbook wb = getWorkbook(storedFileName);
         response.setContentType("ms-vnd/excel");
         response.setHeader("Content-Disposition", "attachment;filename=" +
-                URLEncoder.encode(Objects.requireNonNull(orderFile), StandardCharsets.UTF_8));
+                URLEncoder.encode(Objects.requireNonNull(fileName), StandardCharsets.UTF_8));
         wb.write(response.getOutputStream());
         wb.close();
     }

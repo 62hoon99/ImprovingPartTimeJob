@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +35,9 @@ public class Repository {
     @Value("${file.uploadFileName}")
     private String uploadFileName;
 
+    @Value("${spring.fixFile-dir}")
+    private String fixFileDir;
+
     public String modifyOrderFile(MultipartFile file) throws IOException {
         String storedFileName = saveFile(file);
         saveModifiedOrderFile(storedFileName);
@@ -53,11 +54,11 @@ public class Repository {
         workbook.close();
     }
 
-    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile, String turn) throws IOException {
+    public String createBatchFile(MultipartFile orderFile, MultipartFile receiptFile) throws IOException, IllegalArgumentException {
         String orderFileName = saveFile(orderFile);
         String receiptFileName = saveFile(receiptFile);
 
-        Workbook wbBatchFile = WorkbookFactory.create(new File(getFileDir() + uploadFileName));
+        Workbook wbBatchFile = WorkbookFactory.create(new File(getFixFileDir() + uploadFileName));
         Workbook wbOrderFile = WorkbookFactory.create(new File(getFileDir() + orderFileName));
         Workbook wbReceiptFile = WorkbookFactory.create(new File(getFileDir() + receiptFileName));
 
@@ -71,7 +72,7 @@ public class Repository {
 
         setBatchFileValues(sheetBatch, orderNumber, waybillNumber, payeeName);
 
-        String storedBatchFileName = getDateFormat() + getTurnFormat(turn) + uploadFileName;
+        String storedBatchFileName = getRandomStoredFileName();
         FileOutputStream fileOutputStream = new FileOutputStream(getFileDir() + storedBatchFileName);
         wbBatchFile.write(fileOutputStream);
         fileOutputStream.close();
@@ -86,20 +87,26 @@ public class Repository {
         return storedBatchFileName;
     }
 
-    private String getTurnFormat(String turn) {
-        return turn + "차_";
-    }
+    public void cleanupDirectory() {
+        File file = new File(getFileDir());
 
-    private String getDateFormat() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_");
-        return LocalDate.now().format(formatter);
+        for (String fileName : file.list()) {
+            deleteFile(fileName);
+        }
     }
 
     private String saveFile(MultipartFile file) throws IOException {
-        UUID identifier = UUID.randomUUID();
-        String storedFileName = identifier + extractExt(Objects.requireNonNull(file.getOriginalFilename()));
+        String storedFileName = getRandomStoredFileName(extractExt(Objects.requireNonNull(file.getOriginalFilename())));
         file.transferTo(new File(getFileDir() + storedFileName));
         return storedFileName;
+    }
+
+    private String getRandomStoredFileName(String ext) {
+        return UUID.randomUUID() + ext;
+    }
+
+    private String getRandomStoredFileName() {
+        return UUID.randomUUID() + ".xls";
     }
 
     private List<String> getColumnValues(Sheet sheetOrder, int index) {
@@ -127,7 +134,11 @@ public class Repository {
     }
 
     public String getFileDir() {
-        return System.getProperty("user.dir") + this.rootDir;
+        return System.getProperty("user.dir") + rootDir;
+    }
+
+    public String getFixFileDir() {
+        return System.getProperty("user.dir") + fixFileDir;
     }
 
     public void deleteFile(String storedFileName) {
