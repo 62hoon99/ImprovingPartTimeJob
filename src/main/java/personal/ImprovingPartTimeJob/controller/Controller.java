@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import personal.ImprovingPartTimeJob.controller.form.OrderFileForm;
 import personal.ImprovingPartTimeJob.service.Service;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,22 +28,28 @@ public class Controller {
     @Value("${file.uploadFileName}")
     private String uploadFileName;
 
+    @Value("${file.password}")
+    private String password;
+
     private final Service service;
 
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("orderFileForm", new OrderFileForm(password));
         return "home";
     }
 
     @PostMapping("/orderFile")
-    public String modifyOrderFile(@RequestParam MultipartFile orderFile,
-                                  RedirectAttributes redirectAttributes) {
+    public String modifyOrderFile(OrderFileForm orderFileForm, RedirectAttributes redirectAttributes) {
+        MultipartFile orderFile = orderFileForm.getOrderFile();
+        String password = orderFileForm.getPassword();
+
         if(orderFile.isEmpty()) {
             return "redirect:/";
         }
 
         try {
-            String storedFileName = service.modifyOrderFile(orderFile);
+            String storedFileName = service.modifyOrderFile(orderFile, password);
             redirectAttributes.addAttribute("storedFileName", storedFileName);
             redirectAttributes.addAttribute("fileName", orderFile.getOriginalFilename());
             return "redirect:/download";

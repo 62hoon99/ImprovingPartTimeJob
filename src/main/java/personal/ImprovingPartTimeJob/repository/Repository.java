@@ -23,9 +23,6 @@ public class Repository {
     @Value("${spring.file-dir}")
     private String rootDir;
 
-    @Value("${file.password}")
-    private String password;
-
     @Value("${file.shippingMethod}")
     private String shippingMethod;
 
@@ -38,13 +35,13 @@ public class Repository {
     @Value("${spring.fixFile-dir}")
     private String fixFileDir;
 
-    public String modifyOrderFile(MultipartFile file) throws IOException {
+    public String modifyOrderFile(MultipartFile file, String password) throws IOException {
         String storedFileName = saveFile(file);
-        saveModifiedOrderFile(storedFileName);
+        saveModifiedOrderFile(storedFileName, password);
         return storedFileName;
     }
 
-    private void saveModifiedOrderFile(String storedFileName) throws IOException {
+    private void saveModifiedOrderFile(String storedFileName, String password) throws IOException {
         Workbook workbook = WorkbookFactory.create(new File(getFileDir() + storedFileName), password);
         Sheet sheet = workbook.getSheetAt(0);
         sheet.shiftRows(1, sheet.getLastRowNum(), -1);
@@ -67,8 +64,8 @@ public class Repository {
         Sheet sheetReceipt = wbReceiptFile.getSheetAt(0);
 
         List<String> orderNumber = getColumnValues(sheetOrder, 0);
-        List<String> waybillNumber = getColumnValues(sheetReceipt, 5);// F열
-        List<String> payeeName = getColumnValues(sheetReceipt, 10); // K열
+        List<String> waybillNumber = getColumnValues(sheetReceipt, 7);// H열
+        List<String> payeeName = getColumnValues(sheetReceipt, 12); // M열
 
         setBatchFileValues(sheetBatch, orderNumber, waybillNumber, payeeName);
 

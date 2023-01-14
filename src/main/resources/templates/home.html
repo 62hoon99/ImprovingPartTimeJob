@@ -22,11 +22,14 @@
 <body>
 
 <div>
-  <form action="/orderFile" method="post" enctype="multipart/form-data">
+  <form th:object="${orderFileForm}" action="/orderFile" method="post" enctype="multipart/form-data">
     <fieldset>
       <legend>스마트스토어_전체주문발주발송관리.xlsx 파일 가공</legend>
       <div>
-        전체주문발주발송관리 파일: <input type="file" name="orderFile" />
+        전체주문발주발송관리 파일: <input type="file" th:field="*{orderFile}"/>
+      </div>
+      <div>
+        비밀번호: <input type="text" th:field="*{password}"/>
       </div>
       <button type="submit">전송</button>
       <p class="notice">default 비밀번호: <span class="info">123456</span> <br/>삭제되는 행: <span class="info">1행</span></p>

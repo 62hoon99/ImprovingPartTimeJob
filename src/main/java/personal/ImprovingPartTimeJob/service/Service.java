@@ -11,8 +11,8 @@ import java.io.IOException;
 public class Service {
     private final Repository repository;
 
-    public String modifyOrderFile(MultipartFile file) throws IOException {
-        return repository.modifyOrderFile(file);
+    public String modifyOrderFile(MultipartFile file, String password) throws IOException {
+        return repository.modifyOrderFile(file, password);
     }
 
     public String getFileDir() {
