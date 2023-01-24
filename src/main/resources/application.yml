@@ -1,0 +1,16 @@
+spring:
+  file-dir: /src/main/resources/static/files/
+  fixFile-dir: /src/main/resources/static/fixFiles/
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+file:
+  password: 123456
+  uploadFileName: excelUploadSample.xls
+  shippingMethod: 택배
+  shippingCompany: CJ대한통운
+
+server:
+  port: 80
